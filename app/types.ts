@@ -4,6 +4,7 @@ export type Post = {
     image: string;
     username: string;
     id: string;
+    _id: string;
   };
   prompt: string;
   tag: string;
@@ -16,3 +17,27 @@ export type SecondArg = {
     id: string;
   };
 };
+
+type SessionData = {
+  user?:
+    | {
+        id?: string | null | undefined;
+        name?: string | null | undefined;
+        email?: string | null | undefined;
+        image?: string | null | undefined;
+      }
+    | undefined;
+  expires: string;
+};
+
+export type UseSession =
+  | {
+      update: any;
+      data: SessionData;
+      status: "authenticated";
+    }
+  | {
+      update: any;
+      data: null;
+      status: "unauthenticated" | "loading";
+    };

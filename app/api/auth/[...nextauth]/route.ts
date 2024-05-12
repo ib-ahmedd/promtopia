@@ -2,7 +2,7 @@ import { connectToDB } from "@utils/database";
 import NextAuth from "next-auth/next";
 import GoogleProvider from "next-auth/providers/google";
 import User from "@models/user";
-import { Awaitable } from "next-auth";
+import { ISODateString, Profile } from "next-auth";
 
 const handler = NextAuth({
   providers: [
@@ -15,25 +15,27 @@ const handler = NextAuth({
   ],
 
   callbacks: {
-    async session({ session }: sessionProp) {
-      const sessionUser: sessionUser = await User.findOne({
-        email: session.user.email,
+    async session({ session }: Param) {
+      const sessionUser: sessionUser | null = await User.findOne({
+        email: session.user?.email ? session.user.email : "",
       });
 
-      session.user.id = sessionUser._id.toString();
+      session.user
+        ? (session.user.id = sessionUser?._id ? sessionUser._id.toString() : "")
+        : null;
       return session;
     },
 
     async signIn({ profile }: signInProp) {
       try {
         await connectToDB();
-        const userExists = await User.findOne({ email: profile.email });
+        const userExists = await User.findOne({ email: profile?.email });
 
         if (!userExists) {
           await User.create({
-            email: profile.email,
-            username: profile.name.replace(/\s/g, "").toLowerCase(),
-            image: profile.picture,
+            email: profile?.email,
+            username: profile?.name?.replace(/\s/g, "").toLowerCase(),
+            image: profile?.image,
           });
         }
         return true;
@@ -48,24 +50,26 @@ const handler = NextAuth({
 export { handler as GET, handler as POST };
 
 type signInProp = {
-  profile: {
-    email: string;
-    name: string;
-    picture: string;
-  };
+  profile?: Profile;
 };
 
-type sessionProp = {
+type Param = {
   session: {
-    user: {
-      email: string;
-      id: string;
-    };
+    user?:
+      | {
+          id?: string | null;
+          name?: string | null;
+          email?: string | null;
+          image?: string | null;
+        }
+      | undefined;
+    expires: ISODateString;
   };
 };
 
 type sessionUser = {
   _id: number;
+  id: string;
   email: string;
   username: string;
   image: string;

@@ -5,11 +5,11 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 import Profile from "@components/Profile";
-import { Post } from "@app/types";
+import { Post, UseSession } from "@app/types";
 
 const MyProfile = () => {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session }: UseSession = useSession();
   const [posts, setPosts] = useState<Array<Post>>([]);
 
   const handleEdit = (post: Post) => {
@@ -31,7 +31,7 @@ const MyProfile = () => {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const response = await fetch(`/api/users/${session?.user.id}/posts`);
+      const response = await fetch(`/api/users/${session?.user?.id}/posts`);
       const data = await response.json();
 
       console.log(data);
@@ -39,7 +39,7 @@ const MyProfile = () => {
       setPosts(data);
     };
 
-    if (session?.user.id) fetchPosts();
+    if (session?.user?.id) fetchPosts();
   }, []);
   return (
     <Profile
